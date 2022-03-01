@@ -120,7 +120,7 @@ public class Args {
 
         try {
             if (m instanceof BooleanArgumentMarshaler) {
-                setBooleanArg(m);
+                m.set(currentArgument);
             } else if (m instanceof StringArgumentMarshaler) {
                 setStringArg(m);
             } else if (m instanceof IntegerArgumentMarshaler) {
@@ -155,14 +155,6 @@ public class Args {
         } catch (NoSuchElementException e) {
             errorCode = ErrorCode.MISSING_STRING;
             throw new ArgsException();
-        }
-    }
-
-    private void setBooleanArg(ArgumentMarshaler m) {
-        try {
-            m.set("true");
-        } catch (ArgsException e) {
-
         }
     }
 
@@ -249,14 +241,20 @@ public class Args {
      * ArgumentMarshaler
      * */
     private abstract class ArgumentMarshaler {
+        public abstract void set(Iterator<String> currentArgument) throws ArgsException;
         public abstract void set(String s) throws ArgsException;
         public abstract Object get();
     }
 
     private class BooleanArgumentMarshaler extends ArgumentMarshaler {
         private boolean booleanValue = false;
-        public void set(String s) {
+
+        public void set(Iterator<String> currentArgument) throws ArgsException {
             booleanValue = true;
+        }
+
+        public void set(String s) {
+
         }
 
         public Object get() {
