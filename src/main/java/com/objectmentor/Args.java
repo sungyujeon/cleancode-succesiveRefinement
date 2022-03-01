@@ -134,18 +134,18 @@ public class Args {
         String parameter = null;
         try {
             parameter = args[currentArgument];
-            intArgs.get(argChar).setInteger(Integer.parseInt(parameter));
+            intArgs.get(argChar).set(parameter);
         } catch (ArrayIndexOutOfBoundsException e) {
             valid = false;
             errorArgument = argChar;
             errorCode = ErrorCode.MISSING_INTEGER;
             throw new ArgsException();
-        } catch (NumberFormatException e) {
+        } catch (ArgsException e) {
             valid = false;
             errorArgument = argChar;
             errorParameter = parameter;
             errorCode = ErrorCode.INVALID_INTEGER;
-            throw new ArgsException();
+            throw e;
         }
     }
 
@@ -153,11 +153,13 @@ public class Args {
     private void setStringArg(char argChar, String s) {
         currentArgument++;
         try {
-            stringArgs.get(argChar).setString(args[currentArgument]);
+            stringArgs.get(argChar).set(args[currentArgument]);
         } catch (ArrayIndexOutOfBoundsException e) {
             valid = false;
             errorArgument = argChar;
             errorCode = ErrorCode.MISSING_STRING;
+        } catch (ArgsException e) {
+
         }
     }
 
@@ -166,7 +168,11 @@ public class Args {
     }
 
     private void setBooleanArg(char argChar, boolean value) {
-        booleanArgs.get(argChar).set("true");
+        try {
+            booleanArgs.get(argChar).set("true");
+        } catch (ArgsException e) {
+
+        }
     }
 
     private boolean isBoolean(char argChar) {
@@ -211,7 +217,7 @@ public class Args {
 
     public int getInt(char arg) {
         Args.ArgumentMarshaler am = intArgs.get(arg);
-        return am == null ? 0 : am.getInteger();
+        return am == null ? 0 : (Integer)am.get();
     }
 
     public boolean getBoolean(char arg) {
@@ -221,7 +227,7 @@ public class Args {
 
     public String getString(char arg) {
         Args.ArgumentMarshaler am = stringArgs.get(arg);
-        return am == null ? "" : am.getString();
+        return am == null ? "" : (String)am.get();
     }
 
     private String blankIfNull(String s) {
@@ -236,28 +242,11 @@ public class Args {
 
     }
 
-
+    /*
+     * ArgumentMarshaler
+     * */
     private abstract class ArgumentMarshaler {
-        private String stringValue;
-        private int integerValue;
-
-        public void setString(String s) {
-            stringValue = s;
-        }
-
-        public String getString() {
-            return stringValue == null ? "" : stringValue;
-        }
-
-        public void setInteger(int i) {
-            integerValue = i;
-        }
-
-        public int getInteger() {
-            return integerValue;
-        }
-
-        public abstract void set(String s);
+        public abstract void set(String s) throws ArgsException;
         public abstract Object get();
     }
 
@@ -273,11 +262,32 @@ public class Args {
     }
 
     private class StringArgumentMarshaler extends ArgumentMarshaler {
+        private String stringValue = "";
+
+        public void set(String s) {
+            stringValue = s;
+        }
+
+        public Object get() {
+            return stringValue;
+        }
 
     }
 
     private class IntegerArgumentMarshaler extends ArgumentMarshaler {
+        private int intValue = 0;
 
+        public void set(String s) throws ArgsException {
+            try {
+                intValue = Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                throw new ArgsException();
+            }
+        }
+
+        public Object get() {
+            return intValue;
+        }
     }
 }
 
