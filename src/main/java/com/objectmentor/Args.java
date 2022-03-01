@@ -209,12 +209,12 @@ public class Args {
     /*
      * ArgumentMarshaler
      * */
-    private abstract class ArgumentMarshaler {
-        public abstract void set(Iterator<String> currentArgument) throws ArgsException;
-        public abstract Object get();
+    private interface ArgumentMarshaler {
+        void set(Iterator<String> currentArgument) throws ArgsException;
+        Object get();
     }
 
-    private class BooleanArgumentMarshaler extends ArgumentMarshaler {
+    private class BooleanArgumentMarshaler implements ArgumentMarshaler {
         private boolean booleanValue = false;
 
         public void set(Iterator<String> currentArgument) throws ArgsException {
@@ -226,7 +226,7 @@ public class Args {
         }
     }
 
-    private class StringArgumentMarshaler extends ArgumentMarshaler {
+    private class StringArgumentMarshaler implements ArgumentMarshaler {
         private String stringValue = "";
 
         public void set(Iterator<String> currentArgument) throws ArgsException {
@@ -244,7 +244,7 @@ public class Args {
 
     }
 
-    private class IntegerArgumentMarshaler extends ArgumentMarshaler {
+    private class IntegerArgumentMarshaler implements ArgumentMarshaler {
         private int intValue = 0;
 
         public void set(Iterator<String> currentArgument) throws ArgsException {
