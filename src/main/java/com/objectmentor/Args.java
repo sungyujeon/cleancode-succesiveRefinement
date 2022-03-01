@@ -1,5 +1,6 @@
 package com.objectmentor;
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
 
@@ -114,47 +115,15 @@ public class Args {
 
     private boolean setArgument(char argChar) throws ArgsException {
         ArgumentMarshaler m = marshalers.get(argChar);
-        if (m == null) {
-            return false;
-        }
+        if (m == null) return false;
 
         try {
-            if (m instanceof BooleanArgumentMarshaler) {
-                m.set(currentArgument);
-            } else if (m instanceof StringArgumentMarshaler) {
-                setStringArg(m);
-            } else if (m instanceof IntegerArgumentMarshaler) {
-                setIntArg(m);
-            }
+            m.set(currentArgument);
+            return true;
         } catch (ArgsException e) {
             valid = false;
             errorArgumentId = argChar;
             throw e;
-        }
-        return true;
-    }
-
-    private void setIntArg(ArgumentMarshaler m) throws ArgsException {
-        String parameter = null;
-        try {
-            parameter = currentArgument.next();
-            m.set(parameter);
-        } catch (NoSuchElementException e) {
-            errorCode = ErrorCode.MISSING_INTEGER;
-            throw new ArgsException();
-        } catch (ArgsException e) {
-            errorParameter = parameter;
-            errorCode = ErrorCode.INVALID_INTEGER;
-            throw e;
-        }
-    }
-
-    private void setStringArg(ArgumentMarshaler m) throws ArgsException {
-        try {
-            m.set(currentArgument.next());
-        } catch (NoSuchElementException e) {
-            errorCode = ErrorCode.MISSING_STRING;
-            throw new ArgsException();
         }
     }
 
@@ -242,7 +211,6 @@ public class Args {
      * */
     private abstract class ArgumentMarshaler {
         public abstract void set(Iterator<String> currentArgument) throws ArgsException;
-        public abstract void set(String s) throws ArgsException;
         public abstract Object get();
     }
 
@@ -253,10 +221,6 @@ public class Args {
             booleanValue = true;
         }
 
-        public void set(String s) {
-
-        }
-
         public Object get() {
             return booleanValue;
         }
@@ -265,8 +229,13 @@ public class Args {
     private class StringArgumentMarshaler extends ArgumentMarshaler {
         private String stringValue = "";
 
-        public void set(String s) {
-            stringValue = s;
+        public void set(Iterator<String> currentArgument) throws ArgsException {
+            try {
+                stringValue = currentArgument.next();
+            } catch (NoSuchElementException e) {
+                errorCode = ErrorCode.MISSING_STRING;
+                throw new ArgsException();
+            }
         }
 
         public Object get() {
@@ -278,10 +247,17 @@ public class Args {
     private class IntegerArgumentMarshaler extends ArgumentMarshaler {
         private int intValue = 0;
 
-        public void set(String s) throws ArgsException {
+        public void set(Iterator<String> currentArgument) throws ArgsException {
+            String parameter = null;
             try {
-                intValue = Integer.parseInt(s);
+                parameter = currentArgument.next();
+                intValue = Integer.parseInt(parameter);
+            } catch (NoSuchElementException e) {
+                errorCode = ErrorCode.MISSING_INTEGER;
+                throw new ArgsException();
             } catch (NumberFormatException e) {
+                errorParameter = parameter;
+                errorCode = ErrorCode.INVALID_INTEGER;
                 throw new ArgsException();
             }
         }
