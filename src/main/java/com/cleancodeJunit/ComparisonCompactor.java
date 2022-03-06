@@ -10,7 +10,7 @@ public class ComparisonCompactor {
     private String expected;
     private String actual;
     private int prefixIndex;
-    private int suffixIndex;
+    private int suffixLength;
     private String compactExpected;
     private String compactActual;
 
@@ -46,8 +46,7 @@ public class ComparisonCompactor {
         for (; !suffixOverlapsPrefix(suffixLength); suffixLength++) {
             if (charFromEnd(expected, suffixLength) != charFromEnd(actual, suffixLength)) {
                 break;
-            }
-            suffixIndex = suffixLength;
+            };
         }
 
         int expectedSuffix = expected.length() - 1;
@@ -77,17 +76,12 @@ public class ComparisonCompactor {
     }
 
     private String compactString(String source) {
-        String result = DELTA_START + source.substring(prefixIndex, source.length() - suffixIndex + 1) + DELTA_END;
-
-        if (prefixIndex > 0) {
-            result = computeCommonPrefix() + result;
-        }
-
-        if (suffixIndex > 0) {
-            result = result + computeCommonSuffix();
-        }
-
-        return result;
+        return
+            computeCommonPrefix() +
+            DELTA_START +
+            source.substring(prefixLength, source.length() - suffixLength) +
+            DELTA_END +
+            computeCommonSuffix();
     }
 
     private void findCommonPrefix() {
@@ -109,10 +103,10 @@ public class ComparisonCompactor {
     }
 
     private String computeCommonSuffix() {
-        int end = Math.min(expected.length() - suffixIndex + 1 + contextLength, expected.length());
+        int end = Math.min(expected.length() - suffixLength + contextLength, expected.length());
 
-        return expected.substring(expected.length() - suffixIndex + 1, end) +
-                (expected.length() - suffixIndex + 1 < expected.length() - contextLength ? ELLIPSIS : "");
+        return expected.substring(expected.length() - suffixLength, end) +
+                (expected.length() - suffixLength < expected.length() - contextLength ? ELLIPSIS : "");
     }
 
     private boolean areStringsEqual() {
