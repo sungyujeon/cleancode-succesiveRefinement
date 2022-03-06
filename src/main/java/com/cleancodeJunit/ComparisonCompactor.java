@@ -21,7 +21,7 @@ public class ComparisonCompactor {
     }
 
     public String compact(String message) {
-        if (expected == null || actual == null || areStringsEqual()) {
+        if (shouldNotCompact()) {
             return Assert.format(message, expected, actual);
         }
 
@@ -30,6 +30,10 @@ public class ComparisonCompactor {
         String compactExpected = compactString(expected);
         String compactActual = compactString(actual);
         return Assert.format(message, compactExpected, compactActual);
+    }
+
+    private boolean shouldNotCompact() {
+        return expected == null || actual == null || areStringsEqual();
     }
 
     private String compactString(String source) {
