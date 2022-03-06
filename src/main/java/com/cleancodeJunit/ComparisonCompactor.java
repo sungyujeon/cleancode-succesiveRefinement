@@ -20,7 +20,7 @@ public class ComparisonCompactor {
         actual = actual;
     }
 
-    public String compact(String message) {
+    public String formatCompactedComparison(String message) {
         if (canBeCompacted()) {
             return Assert.format(message, expected, actual);
         }
